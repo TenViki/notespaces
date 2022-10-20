@@ -10,9 +10,6 @@ export class Clazz {
   name: string;
 
   @Column()
-  description: string;
-
-  @Column()
   discordGuildId: string;
 
   @Column()
