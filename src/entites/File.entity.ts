@@ -18,6 +18,9 @@ export class File {
   @Column()
   mimetype: string;
 
+  @Column()
+  orginalname: string;
+
   @ManyToOne(() => Note, (note) => note.files)
   note: Note;
 }

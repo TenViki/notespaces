@@ -5,7 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { DiscordModule } from "./discord/discord.module";
 import { ClassModule } from "./class/class.module";
 import { NotesModule } from "./notes/notes.module";
-import { FilesService } from './files/files.service';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { FilesService } from './files/files.service';
     DiscordModule,
     ClassModule,
     NotesModule,
+    FilesModule,
   ],
-  providers: [FilesService],
 })
 export class AppModule {}
