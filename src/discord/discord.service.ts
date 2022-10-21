@@ -139,6 +139,7 @@ export class DiscordService {
       }
 
       if (commandName === "note") {
+        interaction.deferReply();
         const subject = interactionOptions.getString("subject");
         const caption = interactionOptions.getString("caption");
         const date = interactionOptions.getString("date");
@@ -158,7 +159,7 @@ export class DiscordService {
           [file1, file2, file3],
         );
 
-        await interaction.reply(`Added note ${caption} to ${subject}`);
+        await interaction.followUp(`Added note ${caption} to ${subject}`);
       }
     } catch (error) {
       console.error(error);
