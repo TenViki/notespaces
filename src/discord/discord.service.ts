@@ -163,7 +163,11 @@ export class DiscordService {
       }
     } catch (error) {
       console.error(error);
-      await interaction.reply("An error occurred: " + error.message);
+      if (interaction.deferred) {
+        await interaction.followUp("An error occurred: " + error.message);
+      } else {
+        await interaction.reply("An error occurred: " + error.message);
+      }
     }
   }
 }

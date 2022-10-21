@@ -26,7 +26,6 @@ export class NotesService {
     date: Date,
     guild: string,
     files: File[],
-    message: string,
   ) {
     const clazz = await this.classService.getClass(guild);
     const subjectEntity = await this.classService.getSubjectByShorthand(
@@ -38,12 +37,29 @@ export class NotesService {
       throw new Error("No class or subject found");
     }
 
+    // fetch thread
+    const thread = await this.discordService.getThread(
+      subjectEntity.discordChannelId,
+    );
+
+    const message = await thread.send({
+      content: `**${date.getDate()}. ${
+        date.getMonth() + 1
+      }.** ${date.getFullYear()} - **${subjectEntity.name}**, ${caption}`,
+      files: await Promise.all(
+        files.map(async (f) => ({
+          attachment: await this.filesService.getFileBuffer(f),
+          name: f.orginalname,
+        })),
+      ),
+    });
+
     const note = this.noteRepo.create({
       caption,
       date,
       subject: subjectEntity,
       files,
-      message,
+      message: message.id,
     });
 
     return this.noteRepo.save(note);
@@ -78,21 +94,6 @@ export class NotesService {
       throw new Error("No subject found");
     }
 
-    // fetch thread
-    const thread = await this.discordService.getThread(sub.discordChannelId);
-
-    const message = await thread.send({
-      content: `**${d.getDate()}. ${
-        d.getMonth() + 1
-      }.** ${d.getFullYear()} - **${sub.name}**, ${caption}`,
-      files: await Promise.all(
-        fileEntities.map(async (f) => ({
-          attachment: await this.filesService.getFileBuffer(f),
-          name: f.orginalname,
-        })),
-      ),
-    });
-
-    return this.create(subject, caption, d, guild, fileEntities, message.id);
+    return this.create(subject, caption, d, guild, fileEntities);
   }
 }
