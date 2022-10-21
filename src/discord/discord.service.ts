@@ -84,11 +84,23 @@ export class DiscordService {
           .setRequired(true),
       );
 
+    const getNotesByDateCommand = new SlashCommandBuilder()
+      .setName("notes")
+      .setDescription("Get notes by date")
+      .addStringOption((option) =>
+        option.setName("date").setDescription("Date of the notes"),
+      );
+
     // register slash commands
     await this.rest.put(
       Routes.applicationCommands(process.env.DISCORD_APP_ID),
       {
-        body: [pingCommand, setupCommand, subjectCommand],
+        body: [
+          pingCommand,
+          setupCommand,
+          subjectCommand,
+          getNotesByDateCommand,
+        ],
       },
     );
 
@@ -160,6 +172,26 @@ export class DiscordService {
         );
 
         await interaction.followUp(`Added note ${caption} to ${subject}`);
+      }
+
+      if (commandName === "notes") {
+        const date = interactionOptions.getString("date");
+
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        const notes = await this.noteService.getNotesByDate(
+          date || d,
+          interaction.guild.id,
+        );
+
+        await interaction.reply(
+          `**Notes for ${date}:**\n${notes
+            .map(
+              (note) =>
+                `• **${note.subject.name}:** [${note.caption}](<https://discord.com/channels/${interaction.guild.id}/${note.subject.discordChannelId}/${note.message}>)`,
+            )
+            .join("\n")}`,
+        );
       }
     } catch (error) {
       console.error(error);

@@ -82,6 +82,7 @@ export class NotesService {
     files: (Attachment | null)[],
   ) {
     let d = new Date();
+    d.setHours(0, 0, 0, 0);
     if (date) d = this.formatDateString(date);
 
     const fileEntities = await Promise.all(
@@ -97,5 +98,23 @@ export class NotesService {
     }
 
     return this.create(subject, caption, d, guild, fileEntities);
+  }
+
+  async getNotesByDate(date: string | Date, guild: string) {
+    const s = await this.noteRepo.find({
+      where: {
+        date: typeof date === "string" ? this.formatDateString(date) : date,
+        subject: {
+          clazz: {
+            discordGuildId: guild,
+          },
+        },
+      },
+      relations: ["files", "subject"],
+    });
+
+    console.log(s);
+
+    return s;
   }
 }
