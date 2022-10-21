@@ -3,8 +3,9 @@ import { ConfigModule } from "@nestjs/config";
 import { ConfigService } from "@nestjs/config/dist";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { DiscordModule } from "./discord/discord.module";
-import { ClassModule } from './class/class.module';
-import { NotesModule } from './notes/notes.module';
+import { ClassModule } from "./class/class.module";
+import { NotesModule } from "./notes/notes.module";
+import { FilesService } from './files/files.service';
 
 @Module({
   imports: [
@@ -30,5 +31,6 @@ import { NotesModule } from './notes/notes.module';
     ClassModule,
     NotesModule,
   ],
+  providers: [FilesService],
 })
 export class AppModule {}

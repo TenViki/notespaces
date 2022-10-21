@@ -1,19 +1,29 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject, forwardRef } from "@nestjs/common";
 import {
+  Attachment,
+  CacheType,
+  Channel,
+  ChannelType,
   Client,
+  CommandInteractionOptionResolver,
   GatewayIntentBits,
+  Interaction,
   REST,
   SlashCommandBuilder,
 } from "discord.js";
 import { Routes } from "discord-api-types/v9";
 import { ClassService } from "src/class/class.service";
+import { NotesService } from "src/notes/notes.service";
 
 @Injectable()
 export class DiscordService {
   bot: Client;
   rest: REST;
 
-  constructor(private classService: ClassService) {
+  constructor(
+    @Inject(forwardRef(() => ClassService)) private classService: ClassService,
+    private noteService: NotesService,
+  ) {
     this.bot = new Client({
       intents: [
         GatewayIntentBits.Guilds,
@@ -79,25 +89,73 @@ export class DiscordService {
     console.log("Registered slash commands");
   }
 
-  private async onInteractionCreate(interaction) {
+  private async onInteractionCreate(interaction: Interaction<CacheType>) {
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;
 
-    if (commandName === "ping") {
-      await interaction.reply("Pong!");
-    }
+    try {
+      if (commandName === "ping") {
+        await interaction.reply("Pong!");
+      }
 
-    if (commandName === "setup") {
-      const className = interaction.options.getString("class");
-      const channel = interaction.options.getChannel("channel");
-      const guild = interaction.guild;
+      const interactionOptions =
+        interaction.options as CommandInteractionOptionResolver;
 
-      await this.classService.createClass(className, guild.id, channel.id);
+      if (commandName === "setup") {
+        const className = interactionOptions.getString("class");
+        const channel = interactionOptions.getChannel("channel");
+        const guild = interaction.guild;
 
-      await interaction.reply(
-        `Created class ${className} and set channel to ${channel} (guild id: ${guild.id})`,
-      );
+        if (channel.type !== ChannelType.GuildText) {
+          await interaction.reply("Please select a text channel");
+          return;
+        }
+
+        await this.classService.createClass(className, guild.id, channel.id);
+
+        await interaction.reply(
+          `Created class ${className} and set channel to ${channel} (guild id: ${guild.id})`,
+        );
+      }
+
+      if (commandName === "subject") {
+        const name = interactionOptions.getString("name");
+        const shorthand = interactionOptions.getString("shorthand");
+
+        await this.classService.addSubject(
+          name,
+          shorthand,
+          interaction.guild.id,
+        );
+
+        await interaction.reply(`Added subject ${name} (${shorthand}) `);
+      }
+
+      if (commandName === "note") {
+        const subject = interactionOptions.getString("subject");
+        const caption = interactionOptions.getString("caption");
+        const date = interactionOptions.getString("date");
+        const file1 = interactionOptions.getAttachment("file1") as Attachment;
+        const file2 = interactionOptions.getAttachment("file2") as
+          | Attachment
+          | undefined;
+        const file3 = interactionOptions.getAttachment("file3") as
+          | Attachment
+          | undefined;
+
+        await this.noteService.addNote(
+          subject,
+          caption,
+          date,
+          interaction.guild.id,
+          [file1, file2, file3],
+        );
+
+        await interaction.reply(`Added note ${caption} to ${subject}`);
+      }
+    } catch (error) {
+      await interaction.reply("An error occurred: " + error.message);
     }
   }
 }
