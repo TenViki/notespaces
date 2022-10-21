@@ -41,6 +41,12 @@ export class DiscordService {
     );
   }
 
+  async getThread(threadId: string) {
+    const thread = await this.bot.channels.fetch(threadId);
+    if (!thread.isTextBased()) throw new Error("Thread is not text based");
+    return thread;
+  }
+
   private async onReady() {
     const pingCommand = new SlashCommandBuilder()
       .setName("ping")
@@ -155,6 +161,7 @@ export class DiscordService {
         await interaction.reply(`Added note ${caption} to ${subject}`);
       }
     } catch (error) {
+      console.error(error);
       await interaction.reply("An error occurred: " + error.message);
     }
   }

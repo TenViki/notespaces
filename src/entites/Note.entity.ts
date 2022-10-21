@@ -24,4 +24,7 @@ export class Note {
 
   @OneToMany(() => File, (file) => file.note)
   files: File[];
+
+  @Column()
+  message: string;
 }

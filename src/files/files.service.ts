@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import axios from "axios";
 import { Attachment } from "discord.js";
-import { writeFile } from "fs/promises";
+import { writeFile, readFile } from "fs/promises";
 import { File } from "src/entites/File.entity";
 import { Repository } from "typeorm";
 import { v4 } from "uuid";
@@ -14,13 +14,13 @@ export class FilesService {
   async saveFile(buffer: Buffer, filename: string, mimetype: string) {
     // generate filename and save file
     const fileName = v4();
-    await writeFile(`./files/${fileName}`, buffer);
+    await writeFile(`./storage/${fileName}`, buffer);
 
     const file = this.fileRepo.create({
       filename: fileName,
       mimetype: mimetype,
       orginalname: filename,
-      path: `./files/${fileName}`,
+      path: `./storage/${fileName}`,
       size: buffer.byteLength,
     });
 
@@ -33,5 +33,9 @@ export class FilesService {
     });
 
     return this.saveFile(data.data, fileInfo.name, fileInfo.contentType);
+  }
+
+  async getFileBuffer(file: File) {
+    return await readFile(file.path);
   }
 }

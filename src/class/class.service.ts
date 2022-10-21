@@ -15,6 +15,24 @@ export class ClassService {
     private discordService: DiscordService,
   ) {}
 
+  getClass(guild: string) {
+    return this.classRepo.findOne({
+      where: { discordGuildId: guild },
+      relations: ["subjects"],
+    });
+  }
+
+  getSubjectByShorthand(shorthand: string, guild: string) {
+    return this.subjectRepo.findOne({
+      where: {
+        shorthand,
+        clazz: {
+          discordGuildId: guild,
+        },
+      },
+    });
+  }
+
   async createClass(name: string, guildid: string, channelid: string) {
     const existingClass = await this.classRepo.findOne({ where: { name } });
 
