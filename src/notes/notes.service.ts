@@ -65,6 +65,15 @@ export class NotesService {
     return this.noteRepo.save(note);
   }
 
+  formatDateString(date: string) {
+    const dateArray = date.split(".");
+    const day = dateArray[0];
+    const month = dateArray[1];
+    const year = dateArray[2];
+
+    return new Date(+year, +month - 1, +day);
+  }
+
   async addNote(
     subject: string,
     caption: string,
@@ -73,14 +82,7 @@ export class NotesService {
     files: (Attachment | null)[],
   ) {
     let d = new Date();
-    if (date) {
-      const dateArray = date.split(".");
-      const day = dateArray[0];
-      const month = dateArray[1];
-      const year = dateArray[2];
-
-      d = new Date(+year, +month - 1, +day);
-    }
+    if (date) d = this.formatDateString(date);
 
     const fileEntities = await Promise.all(
       files
